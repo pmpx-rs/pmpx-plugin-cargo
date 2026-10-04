@@ -10,7 +10,7 @@ checksum = "2c7088240c627cfda0cc1f446e198e0d8caac19bd43ce04059dcb7c264f9aba9"
 
 [[package]]
 name = "pmpx-plugin-cargo"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "pmpx-plugin",
 ]
