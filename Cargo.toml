@@ -7,7 +7,7 @@ edition = "2021"
 rust-version = "1.82"
 license = "MIT"
 repository = "https://github.com/pmpx-rs/pmpx-plugin-cargo"
-description = "cargo backend for pmpx: maps its verbs onto cargo commands."
+description = "Maps pmpx verbs onto cargo commands."
 keywords = ["pmpx", "plugin", "cargo", "package-manager"]
 categories = ["development-tools"]
 
