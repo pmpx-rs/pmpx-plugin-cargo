@@ -4,7 +4,7 @@
 # disagree, which is what catches a plugin directory assembled out of mismatched pieces.
 [plugin]
 name    = "cargo"
-version = "0.2.0"
+version = "0.3.0"
 abi     = 3
 family  = "rust"
 
