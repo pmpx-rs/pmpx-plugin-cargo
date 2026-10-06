@@ -204,4 +204,19 @@ mod tests {
             }
         }
     }
+    /// The entry symbol the release workflow hands to the asset tool.
+    ///
+    /// It is the one copy of the ABI's name that no compiler and no other test looks at: if it drifts
+    /// from the contract, the release fails *after* it has published.
+    #[test]
+    fn the_release_workflow_passes_the_contracts_entry_symbol() {
+        let release = std::fs::read_to_string(".github/workflows/release.yaml")
+            .expect("the release workflow should be readable")
+            .replace(' ', "");
+        let symbol = format!("entry_symbol:{}", pmpx_plugin::abi::PMPX_ENTRY_SYMBOL);
+        assert!(
+            release.contains(&symbol),
+            "release.yaml must pass `{symbol}` to the asset tool, or the release fails after publishing"
+        );
+    }
 }
