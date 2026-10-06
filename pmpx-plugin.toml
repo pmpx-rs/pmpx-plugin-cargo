@@ -4,8 +4,8 @@
 # disagree, which is what catches a plugin directory assembled out of mismatched pieces.
 [plugin]
 name    = "cargo"
-version = "0.1.2"
-abi     = 1
+version = "0.2.0"
+abi     = 3
 family  = "rust"
 
 # Evidence used to score this backend against a project root.

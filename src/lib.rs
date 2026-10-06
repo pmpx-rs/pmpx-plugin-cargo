@@ -72,13 +72,18 @@ pub fn create() -> Box<dyn PackageManager> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
-    fn ctx() -> Context {
-        Context {
-            project_root: PathBuf::from("/tmp/proj"),
-            matched: vec!["Cargo.lock".to_string(), "Cargo.toml".to_string()],
-        }
+    /// The context a host would hand over: the project root and the files it matched.
+    ///
+    /// Built through [`Context::builder`] rather than as a struct literal: the v3 context carries
+    /// fields a plugin never sets (pins, reason, score, the declared files) and a lifetime, so the
+    /// literal the v2 tests used no longer compiles -- and should not, since a plugin that fills
+    /// those in by hand would be inventing what the host decides.
+    fn ctx() -> Context<'static> {
+        Context::builder()
+            .project_root("/tmp/proj")
+            .matched(["Cargo.lock", "Cargo.toml"])
+            .build()
     }
 
     /// The exact argv the backend gets spawned with, program first.
@@ -156,5 +161,47 @@ mod tests {
             matches!(err, PluginError::UnsupportedVerb(_)),
             "expected UnsupportedVerb, got {err:?}"
         );
+    }
+
+    /// The text file the host reads before it loads any code must agree with the crate and the
+    /// contract: `name` with `PackageManager::name()`, `family` with `PackageManager::family()`,
+    /// `version` with this crate's version, and `abi` with the contract's major.
+    ///
+    /// No compiler checks these numbers, and the host trusts them -- a stale `abi` is how a plugin
+    /// directory ends up "installed but refused". The check is deliberately a text one: a TOML parser
+    /// would be this crate's only dependency, and the MSRV job builds `--all-targets`.
+    #[test]
+    fn the_manifest_agrees_with_the_crate_and_the_contract() {
+        // Spaces dropped on both sides so the check does not care how the files are aligned.
+        let manifest = std::fs::read_to_string("pmpx-plugin.toml")
+            .expect("the manifest should be readable")
+            .replace(' ', "");
+        let cargo = std::fs::read_to_string("Cargo.toml")
+            .expect("Cargo.toml should be readable")
+            .replace(' ', "");
+
+        let checked = [
+            ("name", format!("name=\"{}\"", Cargo.name())),
+            ("family", format!("family=\"{}\"", Cargo.family().as_str())),
+            (
+                "version",
+                format!("version=\"{}\"", env!("CARGO_PKG_VERSION")),
+            ),
+            ("abi", format!("abi={}", pmpx_plugin::abi::PMPX_ABI_MAJOR)),
+        ];
+
+        for (what, wanted) in checked {
+            assert!(
+                manifest.contains(&wanted),
+                "the manifest must declare `{wanted}` for {what}; it says:\n{manifest}"
+            );
+
+            if what == "version" {
+                assert!(
+                    cargo.contains(&wanted),
+                    "Cargo.toml must declare `{wanted}` too, or the store reports a version this crate does not have"
+                );
+            }
+        }
     }
 }
